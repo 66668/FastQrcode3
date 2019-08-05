@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.ruijia.string_b">
+
+    <application
+        android:name="com.ruijia.string_b.MyApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/logo_b"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/logo_b"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name="com.ruijia.string_b.ClientBAct"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!--aidl 测试b与链路层使用的service,测试b是服务端service-->
+        <!--android:enabled="true"   android:exported="true"，设置为true，将Service暴露出去，另一个App才能访问到它-->
+        <service
+            android:name="com.ruijia.string_b.service.QRXmitService"
+            android:enabled="true"
+            android:exported="true">
+            <!--通过intent-filter对Intent进行过滤，让链路层客户端，通过action开启该服务-->
+            <intent-filter>
+                <action android:name="com.aidl.filter.fileservice" />
+            </intent-filter>
+        </service>
+    </application>
+
+</manifest>

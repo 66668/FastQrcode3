@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.ruijia.qrcode">
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.GET_TASKS" />
+
+    <application
+        android:name=".base.QrApplication"
+        android:allowBackup="true"
+        android:hardwareAccelerated="false"
+        android:icon="@mipmap/logo_qr"
+        android:label="@string/app_name"
+        android:largeHeap="true"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".QrMainAct"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--aidl 测试a与链路层使用的service,链路层是服务端service-->
+        <!--android:enabled="true"   android:exported="true"，设置为true，将Service暴露出去，另一个App才能访问到它-->
+        <service
+            android:name=".service.QRXmitService"
+            android:enabled="true"
+            android:exported="true">
+            <!--通过intent-filter对Intent进行过滤，让测试a客户端，通过action开启该服务-->
+            <intent-filter>
+                <action android:name="com.aidlservice.qrcamera" />
+            </intent-filter>
+        </service>
+    </application>
+
+</manifest>

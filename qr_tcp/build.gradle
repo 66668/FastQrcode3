@@ -1,0 +1,46 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+
+
+
+    defaultConfig {
+        applicationId "com.ruijia.qrcode"
+        minSdkVersion 21
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    sourceSets {
+        main {
+            aidl.srcDirs = ['src/main/aidl']
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:28.+'
+    //zbar 只用于识别
+    implementation project(':lib_zbar')
+    //zxing 只用于生成二维码使用
+    //方式1：使用在线库
+    //    implementation 'com.google.zxing:core:3.3.3'
+    //方式2：使用本地module库，修改了白边设置
+    implementation project(':lib_zxing:lib_zxing_core')
+    implementation project(':lib_zxing:lib_my_zxing')//双zxing库生成二维码，提高生成list<二维码图>速度
+    implementation project(':lib_zxing:lib_my_zxing2')//三个zxing库生成二维码，提高生成list<二维码图>速度
+    implementation project(':lib_zxing:lib_my_zxing3')//4个zxing库生成二维码，提高生成list<二维码图>速度
+}

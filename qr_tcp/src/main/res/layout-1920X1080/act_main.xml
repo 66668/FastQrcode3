@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/ly_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".QrMainAct"
+    tools:ignore="MissingDefaultResource">
+    <!--放预览-->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <!--相机预览+扫描框-->
+        <lib.ruijia.zbar.ZBarContinueView
+            android:id="@+id/zbarview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible"
+            app:qrcv_animTime="1000"
+            app:qrcv_barCodeTipText="将条码放入框内，即可自动扫描"
+            app:qrcv_barcodeRectHeight="140dp"
+            app:qrcv_borderColor="@android:color/white"
+            app:qrcv_borderSize="1dp"
+            app:qrcv_cornerColor="@color/colorPrimaryDark"
+            app:qrcv_cornerLength="20dp"
+            app:qrcv_cornerSize="3dp"
+            app:qrcv_customGridScanLineDrawable="@mipmap/custom_grid_scan_line"
+            app:qrcv_isBarcode="false"
+            app:qrcv_isOnlyDecodeScanBoxArea="false"
+            app:qrcv_isShowDefaultGridScanLineDrawable="true"
+            app:qrcv_isShowDefaultScanLineDrawable="true"
+            app:qrcv_isShowLocationPoint="false"
+            app:qrcv_isShowTipBackground="true"
+            app:qrcv_isShowTipTextAsSingleLine="false"
+            app:qrcv_isTipTextBelowRect="false"
+            app:qrcv_maskColor="#33FFFFFF"
+            app:qrcv_qrCodeTipText="这是提示"
+            app:qrcv_rectWidth="800px"
+            app:qrcv_scanLineColor="@color/colorPrimaryDark"
+            app:qrcv_toolbarHeight="0dp"
+            app:qrcv_topOffset="0dp"
+            app:qrcv_verticalBias="-1" />
+
+    </FrameLayout>
+
+    <!--放二维码-->
+    <RelativeLayout
+        android:id="@+id/ly_img"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent"
+        android:visibility="visible">
+
+        <!--二维码图-->
+        <RelativeLayout
+            android:id="@+id/ly_content"
+            android:layout_width="match_parent"
+            android:layout_height="1400px"
+            android:layout_centerInParent="true"
+            android:background="#FFFFFF">
+            <!--聚焦用，不可删-->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_above="@+id/img_qr"
+                android:gravity="center"
+                android:text="made in China !producer sjy"
+                android:textColor="@android:color/holo_red_dark"
+                android:textSize="40sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/img_qr"
+                android:gravity="center"
+                android:text="Province ShanDong!my leader qw+cxy"
+                android:textColor="@android:color/holo_green_dark"
+                android:textSize="40sp" />
+            <!--识别结果-->
+            <ImageView
+                android:id="@+id/img_qr"
+                android:layout_width="0px"
+                android:layout_height="0px"
+                android:layout_centerInParent="true" />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+</FrameLayout>
