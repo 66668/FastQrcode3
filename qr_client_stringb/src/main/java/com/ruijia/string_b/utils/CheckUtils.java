@@ -66,7 +66,6 @@ public class CheckUtils {
         List<ActivityManager.RunningAppProcessInfo> list = manager.getRunningAppProcesses();
         if (list != null && list.size() >= 0) {
             for (ActivityManager.RunningAppProcessInfo info : list) {
-                Log.d("SJY", "info.importance==100:" + ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND + "--info.processName=" + info.processName);
                 if (info.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND &&
                         info.processName.equals(ActName)) {
                     return true;

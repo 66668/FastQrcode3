@@ -127,7 +127,7 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
     //==发送文件的数据信息==
     private List<String> sendDatas = new ArrayList<>();//发送端 数据
     //    private List<MyData> sendMaps = new ArrayList<>();//发送端 数据（数据由消息队列的发送数据组成，变相保存 原始数据）
-    private String sendFlePath;//发送端 文件路径
+    private String sendSearch;//发送端
     private long fileSize = 0;//文件 字符流大小
     private int sendSize = 0;//发送端 文件大小
 
@@ -161,7 +161,7 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
     private List<Integer> feedBackFlagList = new ArrayList<>();//缺失pos标记list,用于拼接数据
     private StringBuffer feedBackBuffer = new StringBuffer();  //统计结果
     private List<String> feedBackDatas = new ArrayList<>();//接收端处理结果，反馈list
-    private String recvFlePath;//接收端 文件路径
+    private String recSearch;//接收端 搜索词
     private int receveFileSize = 0;//接收端 标记 总数据长度
     private int receve = 0;//接收端 标记 总数据长度
     private int recvCounts = 0;//发送次数统计，handler发送使用
@@ -230,12 +230,10 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
                 //第一次发送数据
                 startSend();
             }
-
-
         }
 
         //======02-数据传输结束=======
-        //接收端，收到结束标记，处理接收端的数据
+        //接收端，收到结束标记，处理发送端的数据
         if (resultStr.contains(Constants.sendOver_Contnet)) {
             RecvTerminalOver(resultStr);
             return;
@@ -246,30 +244,6 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
             sendTerminalOver(resultStr);
             return;
         }
-
-        //======03-数据传输中=======
-        /**
-         *（二）解析传输内容，文件的内容，将数据保存在map中
-         */
-        //首标记
-        String flagStr = resultStr.substring(0, 10);
-        //尾标记
-        String endFlag = resultStr.substring((resultStr.length() - 4), resultStr.length());
-        //内容
-        final String result = resultStr.substring(10, (resultStr.length() - 4));
-        if (flagStr.contains("snd")) {//发送端发送的数据
-            //接收端处理
-            recv_lastStr = null; //必要的参数修改 清空初始化连接
-            handler.removeCallbacks(initRecvTimeoutTask);//本想boolean判断，但是麻烦，就实时清除吧。
-            //
-            RecvTerminalScan(startTime, flagStr, endFlag, result);
-        } else if (flagStr.contains("rcv")) {//接收端发送的数据
-            //发送端处理
-            updateConnectListener();
-            Log.d(TAG, resultStr);
-            SndTerminalScan(flagStr, endFlag, result);
-        }
-
         //需加倒计时，避免接收端死机不接受反复发送的数据
         updateLastTextListener();
     }
@@ -373,7 +347,7 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
         feedBackFlagList = new ArrayList<Integer>();//缺失标记list,用于拼接数据
         feedBackBuffer = new StringBuffer();  //统计结果
         feedBackDatas = new ArrayList<String>();//接收端处理结果，反馈list
-        recvFlePath = null;//接收端 文件路径
+        recSearch = null;//接收端
         receveFileSize = 0;//接收端 标记 总数据长度
         recvCounts = 0;//发送次数统计，handler发送使用
 
@@ -394,7 +368,7 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
         feedBackFlagList = new ArrayList<>();//缺失标记list,用于拼接数据
         feedBackBuffer = new StringBuffer();  //统计结果
         feedBackDatas = new ArrayList<>();//接收端处理结果，反馈list
-        recvFlePath = null;//接收端 文件路径
+        recSearch = null;//接收端
         receveFileSize = 0;//接收端 标记 总数据长度
         recvCounts = 0;//发送次数统计，handler发送使用
         //
@@ -539,37 +513,8 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
     }
 
     /**
-     * 接收端数据处理（处理实时扫描结果）
-     * 相当于另一个手机的app,不会处理myService
-     * <p>
-     * 用途：将实时扫描的片段保存到hashMap中，等待标记处理该数据即可
-     */
-    private void RecvTerminalScan(final long startTime, final String startTags, String endTags, final String recvStr) {
-
-        String[] flagArray = startTags.split("d");
-        //继续排除乱码
-        if ((flagArray.length != 2) || (!endTags.equals(Constants.endTag))) {
-            return;
-        }
-        //扔到handler的异步中处理
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                //处理片段位置标记
-                final String posStr = startTags.substring(3, 10);
-                final int pos = Integer.parseInt(posStr);//位置 "0001234"-->1234
-
-                vibrate();  //震动
-                Log.d(QR_TAG, "接收端保存数据:posStr=" + posStr + "--pos=" + pos + "--recvStr.length()=" + recvStr.length());
-                receveContentMap.put(pos, recvStr);//map暂时保存数据
-                //QRXmitService的aidl在发送端，不会在接收端处理
-            }
-        });
-    }
-
-    /**
      * 接收端 识别结束处理（实时扫描结果）
-     * 数据拼接类型：QrcodeContentSendOver+文件路径+7位的文件大小
+     * 数据拼接类型：QrcodeContentSendOver+搜索词+7位的文件大小
      * <p>
      * 这里需要讨论情况：
      * （1）接收端只拿到该结束标记，则receveContentMap对象没有值，识别流程失败
@@ -594,206 +539,25 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
         lastRecvOver = resultStr;//需清除
 
         //提取结束端信息：路径+数据长度，用于判断接收端数据是否接收全，否则就通知发送端再次发送缺失数据。
-        String pathAndPos = resultStr.substring(Constants.sendOver_Contnet.length(), resultStr.length());
-        String positionStr = pathAndPos.substring((pathAndPos.length() - 7), pathAndPos.length());
+        String pathAndPos = resultStr.substring(Constants.sendOver_Contnet.length());
+        String positionStr = pathAndPos.substring((pathAndPos.length() - 7));
         receveFileSize = Integer.parseInt(positionStr); //拿到发送端的数据大小
-        recvFlePath = pathAndPos.substring(0, (pathAndPos.length() - 7)); //拿到发送端文件类型
-
-        Log.d(QR_TAG, "接收端:发送端单次发送完成，\n 拿到recvFlePath=" + recvFlePath + "--receveFileSize=" + receveFileSize);
-
-        //异步：处理是否有缺失文件。
-        handler.removeCallbacks(recvTerminalOverTask);
-        handler.post(recvTerminalOverTask);
-    }
-
-    /**
-     * ：接收端 异步/处理识别结束标记
-     * <p>
-     * 这里需要讨论情况：
-     * （1）接收端只拿到该结束标记，则receveContentMap对象没有值，识别流程失败
-     * （2）接收端拿到部分（或全部数据）识别数据+结束标记，则符合设计要求
-     */
-    Runnable recvTerminalOverTask = new Runnable() {
-        @Override
-        public void run() {
-            //计算缺失的部分
-            feedBackFlagList = new ArrayList<Integer>();
-            feedBackDatas = new ArrayList<String>();
-            feedBackBuffer = new StringBuffer();
-            recvCounts = 0;
-            Log.d(TAG, "recvTerminalOverTask--receveFileSize=" + receveFileSize);
-            for (int i = 0; i < receveFileSize; i++) {
-                //缓存没有对应数据，则缺失
-                if (receveContentMap.get(i) == null || TextUtils.isEmpty(receveContentMap.get(i))) {
-                    Log.d(QR_TAG, "缺失=" + i);
-                    feedBackFlagList.add(i);
-                }
-            }
-
-            //数据处理
-            if (feedBackFlagList.size() > 0) {//有缺失数据
-                //
-                if (feedBackFlagList.size() == receveFileSize) {//丢失全部数据
-                    Log.d(QR_TAG, "接收端--数据全部缺失:");
-                    try {
-                        //
-                        String backStr = "rcv" + ConvertUtils.int2String(1) + Constants.recv_loss_all + Constants.endTag;
-                        feedBackDatas.add(backStr);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                } else if (feedBackFlagList.size() < receveFileSize) {//丢失部分数据
-                    //拼接数据,告诉发送端发送缺失数据
-                    Log.d(QR_TAG, "接收端--数据缺失:" + feedBackFlagList.size());
-                    //
-                    List<String> orgList = new ArrayList<>();
-                    for (int i = 0; i < feedBackFlagList.size(); i++) {
-                        //拼接
-                        feedBackBuffer.append("" + feedBackFlagList.get(i)).append("/");
-                        if (feedBackBuffer.length() > Constants.LOST_LENGTH) {
-                            //添加到list中
-                            feedBackBuffer.deleteCharAt(feedBackBuffer.toString().length() - 1);
-                            orgList.add(feedBackBuffer.toString());
-                            //重新赋值
-                            feedBackBuffer = new StringBuffer();
-                        }
-                    }
-                    feedBackBuffer.deleteCharAt(feedBackBuffer.toString().length() - 1);
-                    orgList.add(feedBackBuffer.toString());
-
-                    //拼接数据 rcv1234567+内容+RJQR
-                    int backsize = orgList.size();
-                    String backSizeStr = null;
-                    try {
-                        backSizeStr = ConvertUtils.int2String(backsize);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    for (int i = 0; i < backsize; i++) {
-                        String str = "rcv" + backSizeStr + orgList.get(i) + Constants.endTag;
-                        Log.d(TAG, "缺失返回内容=" + str);
-                        feedBackDatas.add(str);
-                    }
-
-                }
-                //
-                recvTerminalBackSend();
-
-            } else {//没有缺失数据
-                feedBackDatas = new ArrayList<>();
-
-                //与接收端的b软件通讯，获取查询结果
-                getSearchResult();
-            }
-        }
-    };
-
-    /**
-     * 接收端 发送反馈二维码数据（判断数据是否接受完成）
-     */
-
-    private void recvTerminalBackSend() {
-        //需要清除 lastRecvOver标记，否则，二次+接收端收不到结束处理标记
-        lastRecvOver = "";//已清除
+        recSearch = pathAndPos.substring(0, (pathAndPos.length() - 7)); //拿到发送端文件类型
+        Log.d(QR_TAG, "接收端:发送端单次发送完成--拿到recvFlePath=" + recSearch + "--receveFileSize=" + receveFileSize);
         //
-        recvCounts = 0;//让缺失数据多显示一会，默认是0
-
-        //开启倒计时
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
+        if (!TextUtils.isEmpty(recSearch)) {
+            getSearchResult();
         }
-        //
-        timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                //终止倒计时
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        //没有缺失，数据处理（处理搜索词和软件b的通讯）
-                        if (feedBackDatas == null || feedBackDatas.size() <= 0) {
-                            //发送结束标记，结束标记为：QrCodeContentReceiveOver
-
-                            //与接收端的b软件通讯，获取查询结果
-                            getSearchResult();
-                            //
-                            if (timer != null) {
-                                timer.cancel();
-                                timer = null;
-                            }
-                            return;
-                        } else { //有缺失发送
-                            Log.d(TAG, "接收端：数据有缺失");
-                            try {
-                                //TODO 有100ms的耗时 可忽略
-                                if (recvCounts < feedBackDatas.size()) {
-                                    String contents = feedBackDatas.get(recvCounts);
-                                    ViewUtils.setImageViewWidth(contents.length(), img_result);//01
-                                    Bitmap btmap = CodeUtils.createByMultiFormatWriter(contents, Constants.qrBitmapSize);
-                                    img_result.setImageBitmap(btmap);//02
-                                    recvCounts++;
-                                } else {
-                                    //
-                                    if (timer != null) {
-                                        timer.cancel();
-                                        timer = null;
-                                    }
-                                    //倒计时关闭显示
-                                    clearShowDelay();
-                                    // 开启聚焦
-                                    handler.removeCallbacks(focusTask);
-                                    handler.postDelayed(focusTask, 500);
-                                }
-
-                            } catch (Exception e) {
-                                Log.e(TAG, "error=" + e.toString());
-                                if (timer != null) {
-                                    timer.cancel();
-                                    timer = null;
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        }, 0, Constants.DEFAULT_TIME * 7);
     }
-
-
-
     /**
      * 拿到发送端的搜索词，开始查询b软件
      */
     private void getSearchResult() {
-        //此处不修改了，无影响
-        new AsyncTask<Void, Void, String>() {
-            @Override
-            protected String doInBackground(Void... voids) {
-                if (recvFlePath == null || TextUtils.isEmpty(recvFlePath)) {
-                    Log.d(TAG, "文件路径为null");
-                    Log.d(QR_TAG, "文件路径为null");
-                    return null;
-                } else {
-                    //拼接数据
-                    String data = new String();
-                    //提取map数据
-                    for (int i = 0; i < receveFileSize; i++) {
-                        String str = receveContentMap.get(i);
-                        data += receveContentMap.get(i);
-                    }
-                    return data;
-                }
-            }
-
-            @Override
-            protected void onPostExecute(String str) {
-                connectClientBForResult(str);
-            }
-
-        }.execute();
+        if (!TextUtils.isEmpty(recSearch)) {
+            connectClientBForResult(recSearch);
+        } else {
+            recvTerminalFinish(0, "没有获取到搜索词");
+        }
     }
 
     /**
@@ -831,6 +595,7 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
         try {
             if (fileBinder != null) {
                 //向服务端发送查询数据
+                Log.e(TAG, "向测试B端发送查询数据" + searchData);
                 fileBinder.QRRecv(searchData);
             } else {
                 Log.e(TAG, "测试B端app进程间通讯失败");
@@ -874,7 +639,7 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
     private void initSendParams() {
 
         sendDatas = new ArrayList<>();//发送端 数据
-        sendFlePath = null;//发送端 文件路径
+        sendSearch = null;//发送端 文件路径
         fileSize = 0;//文件 字符流大小
         sendSize = 0;//发送端 文件大小
 
@@ -903,7 +668,7 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
 //        sendImgs = new ArrayList<>();//发送端 数据
         sendBackList = new ArrayList<>();//发送端 返回缺失数据
 //        sendImgsMore = new ArrayList<>();//缺失的数据； Bitmap样式
-        sendFlePath = null;//发送端 文件路径
+        sendSearch = null;//发送端 文件路径
         sendSize = 0;//发送端 文件路径
         sendCounts = 0;//发送次数统计，handler发送使用
         isSending = false;//代码成对出现，用于保护发送
@@ -935,141 +700,6 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
             }
         }
     };
-
-    /**
-     * 发送端 接收数据处理（实时扫描结果）,处理完成直接发送
-     * 数据格式：rcv1234567+内容+RJQR
-     */
-    private void SndTerminalScan(String headTags, final String endTags, final String recvStr) {
-        String[] flagArray = headTags.split("v");
-
-        //继续排除乱码
-        if ((flagArray.length != 2) || (!endTags.equals(Constants.endTag))) {
-            return;
-        }
-        //处理片段位置标记
-        String posStr = headTags.substring(3, 10);
-        rcvImgSize = Integer.parseInt(posStr);//位置 "0001234"-->1234
-        if (rcvImgSize == 1) {//拿到图片直接处理
-
-            if (recvStr.contains(Constants.recv_loss_all)) {//接收端数据全部丢失,发送端需要重新发送数据
-                sendBackList = new ArrayList<>();
-                for (int i = 0; i < sendDatas.size(); i++) {
-                    sendBackList.add(i);
-                }
-            } else {
-                sendBackList = new ArrayList<>();
-                vibrate();  //震动
-                //数据转成list,list保存位置信息
-                String[] strDatas = recvStr.split("/");
-                //数据保存在list中
-                for (int i = 0; i < strDatas.length; i++) {
-                    sendBackList.add(Integer.parseInt(strDatas[i]));
-                }
-                Log.e(TAG, "发送端：接收数据处理,返回张数=" + rcvImgSize + "内容=" + recvStr + "\n查找缺失数据=" + sendBackList.size());
-                //查找缺失数据
-                new AsyncTask<Void, Void, List<MyData>>() {
-                    @Override
-                    protected List<MyData> doInBackground(Void... voids) {
-                        List<MyData> maps = new ArrayList<>();
-                        for (int i = 0; i < sendBackList.size(); i++) {
-                            a:
-                            for (int j = 0; j < sendSize; j++) {
-                                if (sendBackList.get(i) == j) {
-                                    //取缓存
-                                    Bitmap bitmap = BitmapCacheUtils.getInstance().getBitmap(Constants.key_bitmap + j);
-                                    String len = BitmapCacheUtils.getInstance().getString(Constants.key_len + j);
-                                    MyData myData = new MyData(bitmap, Integer.parseInt(len), j);
-                                    maps.add(myData);
-                                    break a;
-                                }
-                            }
-                        }
-                        return maps;
-                    }
-
-                    @Override
-                    protected void onPostExecute(List<MyData> maps) {
-                        super.onPostExecute(maps);
-                        if (maps == null || maps.size() <= 0) {
-                            SendMoreCount = 0;
-                            sendImgsMore = new ArrayList<>();
-                            Log.e(TAG, "异常-生成缺失数据失败--SndTerminalScan");
-
-                        }
-                        sendImgsMore = new ArrayList<>();
-                        sendImgsMore = maps;
-                        Log.e(TAG, " 二次+发送：缺失长度=" + sendImgsMore.size() + "总长度=" + sendDatas.size());
-                        //在此发送
-                        startSendMore();
-
-                    }
-                }.execute();
-            }
-        } else if (rcvImgSize > 1) {//缺失片段大于2张的处理（手机运存达不到，基本不会走到这一步）
-            sendBackLists.add(recvStr);
-            if (sendBackLists.size() == rcvImgSize) {//攒够了数据一起处理+二次发送
-                if (recvStr.contains(Constants.recv_loss_all)) {//接收端数据全部丢失,发送端需要重新发送数据
-                    sendBackList = new ArrayList<>();
-                    for (int i = 0; i < sendDatas.size(); i++) {
-                        sendBackList.add(i);
-                    }
-                } else {
-                    sendBackList = new ArrayList<>();
-                    vibrate();  //震动
-                    //数据转成list,list保存位置信息
-                    for (int i = 0; i < sendBackLists.size(); i++) {
-                        String[] strDatas = recvStr.split("/");
-                        //数据保存在list中
-                        for (int j = 0; i < strDatas.length; j++) {
-                            sendBackList.add(Integer.parseInt(strDatas[j]));
-                        }
-                    }
-                    Log.e(TAG, "发送端：接收数据处理,返回张数=" + rcvImgSize + "内容=" + recvStr + "\n查找缺失数据=" + sendBackList.size());
-                    new AsyncTask<Void, Void, List<MyData>>() {
-                        @Override
-                        protected List<MyData> doInBackground(Void... voids) {
-                            List<MyData> maps = new ArrayList<>();
-                            long startTime = System.currentTimeMillis();
-                            for (int i = 0; i < sendBackList.size(); i++) {
-                                a:
-                                for (int j = 0; j < sendSize; j++) {
-                                    if (sendBackList.get(i) == j) {
-                                        //取缓存
-                                        Bitmap bitmap = BitmapCacheUtils.getInstance().getBitmap(Constants.key_bitmap + j);
-                                        String len = BitmapCacheUtils.getInstance().getString(Constants.key_len + j);
-                                        MyData myData = new MyData(bitmap, Integer.parseInt(len), j);
-                                        maps.add(myData);
-                                        break a;
-                                    }
-                                }
-                            }
-                            long time = System.currentTimeMillis() - startTime;
-                            Log.d(TAG, "缺失缓存耗时=" + time + "ms");
-                            return maps;
-                        }
-
-                        @Override
-                        protected void onPostExecute(List<MyData> maps) {
-                            super.onPostExecute(maps);
-                            if (maps == null || maps.size() <= 0) {
-                                SendMoreCount = 0;
-                                sendImgsMore = new ArrayList<>();
-                                Log.e(TAG, "异常-生成缺失数据失败--SndTerminalScan");
-                            }
-                            sendImgsMore = new ArrayList<>();
-                            sendImgsMore = maps;
-                            Log.e(QR_TAG, " 二次+发送：缺失长度=" + sendImgsMore.size() + "总长度=" + sendDatas.size());
-                            //发送二维码
-                            startSendMore();
-                        }
-                    }.execute();
-
-                }
-
-            }
-        }
-    }
 
 
     /**
@@ -1185,154 +815,37 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-
-                        long time = System.currentTimeMillis() - lastSaveTime;
-                        //回调:发送间隔，用于计算识别速度，也用于鉴别 发送间隔是否标准
-                        myService.sendAidlQrUnitTime((System.currentTimeMillis() - lastSaveTime), sendDatas.size(), sendCounts, "firstSend--发送间隔=" + time);
-
-                        if (sendCounts < sendDatas.size()) {//发送二维码
-                            if (firstSendQueue.size() <= 0) {
-                                Log.e(TAG, "等待生产中...");
-                                return;
+                        //发送结束标记，结束标记为：QrcodeContentSendOver+文件路径+文件大小（7位数）
+                        try {
+                            showSendBitmap(flag_send_over, Constants.SEND_FLAG_TIME);//结束符
+                            feedbackTime = System.currentTimeMillis();//发送结束-加入时间
+                            //结束倒计时
+                            if (timer != null) {
+                                timer.cancel();
+                                timer = null;
                             }
-
-                            MyData data = firstSendQueue.pollLast();//
-
-                            ViewUtils.setImageViewWidth(data.width, img_result);//01
-                            img_result.setImageBitmap(data.bitmap);//02
-                            sendCounts++;
-
-                            //低于最低数量再生成
-                            if (firstSendQueue.size() < Constants.MIN_QR_COUNT) {
-                                initFirstSendProducerTask();
+                        } catch (Exception e) {
+                            //已处理
+                            e.printStackTrace();
+                            if (timer != null) {
+                                timer.cancel();
+                                timer = null;
                             }
-                        } else {//最后一次数据 结束符号
-                            //统计
-                            long onceTime = System.currentTimeMillis() - handler_lastTime;//ms
-                            send_transMSG = "二维码发送速率=" + (fileSize * 1000 / onceTime) + "B/s\n";
-                            Log.e(TAG, send_transMSG);
-                            myService.qrTransProgress(onceTime, sendSize, sendCounts, send_transMSG);
-                            //第一次发送结束后，设置为false
-                            isSending = false;
-                            //发送结束标记，结束标记为：QrcodeContentSendOver+文件路径+文件大小（7位数）
-                            try {
-                                showSendBitmap(flag_send_over, Constants.SEND_FLAG_TIME);//结束符
-                                feedbackTime = System.currentTimeMillis();//发送结束-加入时间
-                                //结束倒计时
-                                if (timer != null) {
-                                    timer.cancel();
-                                    timer = null;
-                                }
-                            } catch (Exception e) {
-                                //已处理
-                                e.printStackTrace();
-                                if (timer != null) {
-                                    timer.cancel();
-                                    timer = null;
-                                }
-                            }
-                            //开启聚焦任务
-                            handler.removeCallbacks(focusTask);
-                            handler.postDelayed(focusTask, 500);
                         }
+                        //开启聚焦任务
+                        handler.removeCallbacks(focusTask);
+                        handler.postDelayed(focusTask, 500);
 
+                        long onceTime = System.currentTimeMillis() - handler_lastTime;//ms
+                        myService.qrTransProgress(onceTime, 1, 1, send_transMSG);
                         lastSaveTime = System.currentTimeMillis();
+
                     }
                 });
 
             }
         }, 100, Constants.DEFAULT_TIME);
     }
-
-    /**
-     * 发送端 发送数据
-     * <p>
-     * 二次+发送
-     */
-    private void startSendMore() {
-        //设置强制结束
-        if (SendMoreCount > Constants.MAX_SEND_TIMES) {
-            myService.isTrans(false, "超过" + Constants.MAX_SEND_TIMES + "次缺失识别，系统强制结束传输，请重新传输文件或配置参数");
-            return;
-        }
-        SendMoreCount++;
-        //加入缺失文件反馈的计时统计
-        long myfeedbackTime = System.currentTimeMillis() - feedbackTime;
-        send_feedBackMSG += "返回缺失片耗时=" + myfeedbackTime + "ms\n";
-        //
-        removeConnectListener();//发送耗时，需要解除监听
-        sendCounts = 0;
-        lastSendOver = "";//清除，否则该方法不再出发。
-        //此处不保存时间节点，因为统计用不到
-        handler_lastTime = System.currentTimeMillis();
-        lastSaveTime = System.currentTimeMillis();
-        //开启倒计时
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
-        }
-        timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        long moreTime = System.currentTimeMillis() - lastSaveTime;
-                        if (sendImgsMore.size() > 0 && sendCounts < sendImgsMore.size()) {
-                            MyData data = null;
-                            try {
-                                //回调发送间隔，用于计算识别速度，也用于鉴别 发送间隔是否标准
-                                myService.sendAidlQrUnitTime((System.currentTimeMillis() - lastSaveTime), sendImgsMore.size(), sendCounts, "secondMore--发送间隔=" + moreTime);
-                                data = sendImgsMore.get(sendCounts);
-
-                            } catch (final Exception e) {
-                                //终止倒计时
-                                Log.e(TAG, "二次+发送数据异常=" + e.toString());
-                                showSendBitmap(flag_send_over, Constants.SEND_FLAG_TIME);//结束码
-                                feedbackTime = System.currentTimeMillis();//发送结束-加入时间
-                                if (timer != null) {
-                                    timer.cancel();
-                                    timer = null;
-                                }
-                            }
-                            ViewUtils.setImageViewWidth(data.width, img_result);//01
-                            img_result.setImageBitmap(data.bitmap);//02
-                            sendCounts++;
-                            lastSaveTime = System.currentTimeMillis();
-
-                        } else {
-
-                            //统计
-                            long backSize = 0;//缺失片段总长度
-                            for (MyData myDataaa : sendImgsMore) {
-                                backSize += myDataaa.width;
-                            }
-                            long time = System.currentTimeMillis() - handler_lastTime;
-                            send_transMSG += "二次+发送二维码速率=" + (backSize * 1000 / time) + "B/s\n";
-
-                            //发送结束标记，结束标记为：QrcodeContentSendOver+文件路径+文件大小（7位数）
-                            //终止倒计时
-                            showSendBitmap(flag_send_over, Constants.SEND_FLAG_TIME);
-                            feedbackTime = System.currentTimeMillis();//发送结束-加入时间
-                            if (timer != null) {
-                                timer.cancel();
-                                timer = null;
-                            }
-
-                            //开启聚焦任务
-                            handler.removeCallbacks(focusTask);
-                            handler.postDelayed(focusTask, 500);
-                        }
-
-                    }
-                });
-
-            }
-        }, 100, (int) (Constants.DEFAULT_TIME * 1.2));//避免二次+发送次数多，延长发送间隔，争取一次成功
-
-    }
-
 
     /**
      * <p>
@@ -1486,7 +999,6 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
     @Override
     protected void onDestroy() {
         mZBarView.onDestroy(); // 销毁二维码扫描控件
-        handler.removeCallbacks(recvTerminalOverTask);
         handler.removeCallbacks(focusTask);
 
         if (conn != null) {
@@ -1532,17 +1044,18 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
         //说明：字符串查询，不用path
         @Override
         public void onQrsend(String path, List<String> newData, long mfileSize) {
-            Log.d(TAG, "onQrsend监听 发送");
+
             //设置识别端
             clearRecvParams();
             initSendParams();//初始化发送参数
             SendMoreCount = 0;//初始化强制关闭的计数
 
             //赋值
-            sendFlePath = path;
+            sendSearch = path;
             sendDatas = newData;
             sendSize = sendDatas.size();
             fileSize = mfileSize;
+            Log.d(TAG, "onQrsend监听 拿到发送数据");
             //
             if (sendDatas != null &&
                     sendDatas.size() > 0 &&
@@ -1665,7 +1178,6 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
      * @return
      */
     private void showRecvBitmap(final String content, final long showTime) {
-        Log.e(TAG, "耗时显示");
 
         new AsyncTask<Void, Void, Bitmap>() {
             @Override

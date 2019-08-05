@@ -50,7 +50,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="查询所有" />
+            android:text="查询111111" />
 
         <Button
             android:id="@+id/btn_delete"

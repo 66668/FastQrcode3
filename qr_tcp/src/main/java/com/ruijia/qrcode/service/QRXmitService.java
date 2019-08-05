@@ -50,7 +50,7 @@ public class QRXmitService extends Service {
     private AtomicBoolean isServiceDestory = new AtomicBoolean(false);
     //RemoteCallbackList是专门用于删除跨进程listener的接口，它是一个泛型，支持管理多个回调。
     private RemoteCallbackList<QrProgressCallback> mListener = new RemoteCallbackList<>();
-    private String selectPath;//当前传输的文件/搜索的字符串
+    private String searchStr;//当前传输的文件/搜索的字符串
     private OnServiceAndActListener listener;//
     private List<String> newDatas = new ArrayList<>();
     private int size = 0;//当前文件的list长度
@@ -181,24 +181,24 @@ public class QRXmitService extends Service {
     /**
      * 接收到进程的数据，处理数据
      *
-     * @param localPath
+     * @param searchStr
      */
-    public void srvQrSend(String localPath) {
-        Log.d("SJY", "QRXmitService--QrSend-搜索字符串=" + localPath);
+    public void srvQrSend(String searchStr) {
+        Log.d("SJY", "QRXmitService--QrSend-搜索字符串=" + searchStr);
         //
         clearLastData();
         //准备发送二维码所需的常量图
         initCreateBitmap();
 
         //判断string是否为空
-        if (TextUtils.isEmpty(localPath)) {
+        if (TextUtils.isEmpty(searchStr)) {
             isTrans(false, "搜索字符串不存在");
         } else {
             //保存时间节点，用于统计传输总耗时
             SPUtil.putLong(Constants.START_TIME, System.currentTimeMillis());
-            selectPath = "not_use_in_string_search";
+            this.searchStr = searchStr;
             //拼接字符串
-            split2IO(localPath);
+            split2IO(searchStr);
         }
     }
 
@@ -215,7 +215,7 @@ public class QRXmitService extends Service {
      * 清空处理
      */
     private void clearLastData() {
-        selectPath = "";//当前传输的文件
+        searchStr = "";//当前传输的文件
         newDatas = new ArrayList<>();
         size = 0;//当前文件的list长度
 
@@ -514,13 +514,13 @@ public class QRXmitService extends Service {
                     CacheUtils.getInstance().put(Constants.flag_recv_failed_length, "" + ViewUtils.getImageViewWidth((Constants.receiveOver_Content + Constants.FAILED).length()));
                 }
 
-                //发送端标记图 规则：QrcodeContentSendOver+filePath+七位的总片段数size
+                //发送端标记图 规则：QrcodeContentSendOver+搜索词+七位的总片段数size
                 //04
                 String sizeStr = null;
                 String sendover = null;
                 try {
                     sizeStr = ConvertUtils.int2String(newDatas.size());
-                    sendover = Constants.sendOver_Contnet + selectPath + sizeStr;
+                    sendover = Constants.sendOver_Contnet + searchStr + sizeStr;
                 } catch (Exception e) {
                     e.printStackTrace();
                     Log.e(TAG, "标记转换异常--ConvertUtils.int2String()" + e.toString());
@@ -1382,14 +1382,13 @@ public class QRXmitService extends Service {
     /**
      * 由service调起act
      */
-
     private void serviceStartAct() {
         if (checkActAlive() && isActFrontShow()) {
             isTrans(true, "MainAct在前台运行");
             //接口回调
             if (listener != null) {
                 // 字符串查询，不用 selectPath
-                listener.onQrsend("not_use_in_string_search", newDatas, fileSize);
+                listener.onQrsend(searchStr, newDatas, fileSize);
             } else {
                 isTrans(false, "链路层未启动，回调无法使用listener=null");
             }

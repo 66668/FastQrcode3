@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -106,26 +107,19 @@ public class DatabaseSQL extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(DB_TABLE_NAME,
-                new String[]{EXP_CONTENT,//1
-
-                },
-                EXP_NUMBER + " =?",
-                new String[]{"%" + key},
+                new String[]{EXP_CONTENT},
+                EXP_NUMBER + " = ?",
+                new String[]{"%"+key+"%"},
                 null,
                 null,
-                ORDERID + " desc",
+                null,
                 null);
 
-        //拼接数据
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                val = cursor.getString(0);//1
-            }
-            cursor.close();
-        } else {
-
+        while (cursor.moveToNext()) {
+            val = cursor.getString(0);
         }
-        db.close();
+        cursor.close();
+//        db.close();
         return val;
     }
 

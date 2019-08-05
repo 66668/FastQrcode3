@@ -16,8 +16,6 @@ import com.ruijia.string_b.database.DatabaseSQL;
 import com.ruijia.string_b.listener.OnServiceAndActListener;
 import com.ruijia.string_b.utils.CheckUtils;
 
-import java.io.File;
-
 
 /**
  * aidl服务端,测试b的service,给链路层提供service接口，
@@ -55,6 +53,7 @@ public class QRXmitService extends Service {
         //拿到客户端信息，测试b使用该数据。
         @Override
         public boolean QRRecv(final String searchData) throws RemoteException {
+            Log.d("SJY", "测试B软件--" + searchData);
             //查询数据库，获取数据，返回
             handler.post(new Runnable() {
                 @Override
@@ -74,8 +73,10 @@ public class QRXmitService extends Service {
                             SearchResultCallback callback = mListener.getBroadcastItem(i);
                             //处理回调
                             if (TextUtils.isEmpty(val)) {
+                                Log.d("SJY", "查询数据库--没有对应数据");
                                 callback.searchResult(0, "没有对应数据");
                             } else {
+                                Log.d("SJY", "查询数据库--" + val);
                                 callback.searchResult(1, val);
                             }
                             mListener.finishBroadcast();//成对出现2
