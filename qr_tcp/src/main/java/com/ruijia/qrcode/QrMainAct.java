@@ -59,7 +59,7 @@ import lib.ruijia.zbar.qrodecontinue.ContinueQRCodeView;
 public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate {
     private static final String SCAN_TAG = "scan";
     private static final String QR_TAG = "qr_sjy";
-    private static final String TAG = "trans";
+    private static final String TAG = "SJY";
 
     //========================通用变量==========================
     //控件
@@ -281,10 +281,10 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
      */
     private void recvTerminalFinish(int code, String msg) {
         if (code == 0) {
-            Log.d(QR_TAG, "接收端：返回搜索数据：空");
+            Log.d(TAG, "接收端：返回搜索数据：空");
             showRecvBitmap(Constants.receiveOver_Content + Constants.FAILED, Constants.RECV_FLAG_TIME * 3);
         } else {
-            Log.d(QR_TAG, "接收端：返回搜索数据:" + msg);
+            Log.d(TAG, "接收端：返回搜索数据:" + msg);
             showRecvBitmap(Constants.receiveOver_Content + Constants.SUCCESS + msg, Constants.RECV_FLAG_TIME * 3);
         }
     }
