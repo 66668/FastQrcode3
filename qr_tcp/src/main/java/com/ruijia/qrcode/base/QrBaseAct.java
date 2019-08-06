@@ -28,7 +28,7 @@ public class QrBaseAct extends AppCompatActivity {
     /**
      * 测试B与链路层aidl
      */
-    public FileAidlInterface fileBinder;
+//    public FileAidlInterface fileBinder;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -126,91 +126,91 @@ public class QrBaseAct extends AppCompatActivity {
      * ============================测试b与链路层的aild连接（链路层是客户端，测试b是服务端）====================================
      * ==================================================================================================================
      */
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            //连接服务端的binder
-            fileBinder = FileAidlInterface.Stub.asInterface(service);
-            //绑定回调
-            try {
-                fileBinder.register(callback);
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-            //设置死亡代理
-            try {
-                service.linkToDeath(mDeathRecipient, 0);
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-        }
+//    private ServiceConnection connection = new ServiceConnection() {
+//        @Override
+//        public void onServiceConnected(ComponentName name, IBinder service) {
+//            //连接服务端的binder
+//            fileBinder = FileAidlInterface.Stub.asInterface(service);
+//            //绑定回调
+//            try {
+//                fileBinder.register(callback);
+//            } catch (RemoteException e) {
+//                e.printStackTrace();
+//            }
+//            //设置死亡代理
+//            try {
+//                service.linkToDeath(mDeathRecipient, 0);
+//            } catch (RemoteException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//
+//        @Override
+//        public void onServiceDisconnected(ComponentName name) {
+//            fileBinder = null;
+//        }
+//    };
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            fileBinder = null;
-        }
-    };
 
-
-    /**
-     * 监听Binder是否死亡
-     */
-    private IBinder.DeathRecipient mDeathRecipient = new IBinder.DeathRecipient() {
-        @Override
-        public void binderDied() {
-            if (fileBinder == null) {
-                return;
-            }
-            fileBinder.asBinder().unlinkToDeath(mDeathRecipient, 0);
-            fileBinder = null;
-            //重新绑定
-            bind();
-        }
-    };
+//    /**
+//     * 监听Binder是否死亡
+//     */
+//    private IBinder.DeathRecipient mDeathRecipient = new IBinder.DeathRecipient() {
+//        @Override
+//        public void binderDied() {
+//            if (fileBinder == null) {
+//                return;
+//            }
+//            fileBinder.asBinder().unlinkToDeath(mDeathRecipient, 0);
+//            fileBinder = null;
+//            //重新绑定
+//            bind();
+//        }
+//    };
 
     /**
      * 设置aidl过滤，连接另一个app的service
      */
     public void bind() {
-        Intent intent = new Intent();
-        //设置要调用的app包和对应的service
-        //方式1：
-//        ComponentName componentName= new ComponentName("com.ruijia.qrcode","QRXmitService");
-////        intent.setComponent(componentName);
-        //方式2：
-        //从 Android 5.0开始 隐式Intent绑定服务的方式已不能使用,所以这里需要设置Service所在服务端的包名
-        intent.setPackage("com.ruijia.string_b");//服务端的包名
-        //通过intent-filter设置的name,找到这个service
-        intent.setAction("com.aidl.filter.fileservice");//过滤
-        bindService(intent, connection, Context.BIND_AUTO_CREATE);//开启Service
-        Log.d("SJY", "绑定b软件的aidl服务");
+//        Intent intent = new Intent();
+//        //设置要调用的app包和对应的service
+//        //方式1：
+////        ComponentName componentName= new ComponentName("com.ruijia.qrcode","QRXmitService");
+//////        intent.setComponent(componentName);
+//        //方式2：
+//        //从 Android 5.0开始 隐式Intent绑定服务的方式已不能使用,所以这里需要设置Service所在服务端的包名
+//        intent.setPackage("com.ruijia.string_b");//服务端的包名
+//        //通过intent-filter设置的name,找到这个service
+//        intent.setAction("com.aidl.filter.fileservice");//过滤
+//        bindService(intent, connection, Context.BIND_AUTO_CREATE);//开启Service
+//        Log.d("SJY", "绑定b软件的aidl服务");
     }
 
     public void unbind() {
-        if (connection != null && fileBinder != null && fileBinder.asBinder().isBinderAlive()) {
-
-            try {
-                fileBinder.unregister(callback);
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-
-            unbindService(connection);
-        } else {
-            Log.e("SJY", "进程间通讯中断");
-            unbindService(connection);
-        }
+//        if (connection != null && fileBinder != null && fileBinder.asBinder().isBinderAlive()) {
+//
+//            try {
+//                fileBinder.unregister(callback);
+//            } catch (RemoteException e) {
+//                e.printStackTrace();
+//            }
+//
+//            unbindService(connection);
+//        } else {
+//            Log.e("SJY", "进程间通讯中断");
+//            unbindService(connection);
+//        }
     }
 
     /**
      * 服务端（软件测试b）回调给客户端(链路层)
      */
-    public SearchResultCallback callback = new SearchResultCallback.Stub() {
-        @Override
-        public void searchResult(int code, String msg) throws RemoteException {
-            recevClientBResult(code, msg);
-        }
-    };
+//    public SearchResultCallback callback = new SearchResultCallback.Stub() {
+//        @Override
+//        public void searchResult(int code, String msg) throws RemoteException {
+//            recevClientBResult(code, msg);
+//        }
+//    };
 
     //子类具体实现
     public void recevClientBResult(int code, String msg) {

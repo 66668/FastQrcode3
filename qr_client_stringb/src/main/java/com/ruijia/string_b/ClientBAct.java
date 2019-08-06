@@ -93,9 +93,6 @@ public class ClientBAct extends AppCompatActivity implements View.OnClickListene
             }
 
         } else if (btn_search == v) {
-           String val = sql.findByKey("123456");
-
-            et_val.setText("查询结果:" + val);
             List<TestBean> beans = sql.findAll();
             if (beans != null && beans.size() > 0) {
                 adapter.setList(beans);

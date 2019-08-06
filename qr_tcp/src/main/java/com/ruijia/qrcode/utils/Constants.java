@@ -40,6 +40,9 @@ public class Constants {
     public static String flag_send_over = "flag_send_over";
     public static String flag_send_over_length = "flag_send_over_length";
 
+    public static String flag_send_complete = "flag_send_com";
+    public static String flag_send_complete_length = "flag_send_com_length";
+
     //~~~内容的key~~~
     //bitmap key
     public static String key_bitmap = "key_bitmap";
@@ -52,7 +55,7 @@ public class Constants {
 
     public static final int FOCUS_TIME = 2000;//摄像头聚焦间隔（使二维码更好识别的暴力方式） ms
 
-    public static final int TIMEOUT = 20;//连接超时 次数
+    public static final int TIMEOUT = 10;//连接超时 次数
 
     public static final int CONNECT_TIMEOUT = 30;//通讯超时  次数
 
