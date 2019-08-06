@@ -75,7 +75,7 @@ public class DatabaseSQL extends SQLiteOpenHelper {
 
 
         long result = db.insert(DB_TABLE_NAME, null, values); // 组拼sql语句实现的.带返回值
-        db.close();// 释放资源 TODO 需测试
+        db.close();
         return result;
     }
 
@@ -105,20 +105,25 @@ public class DatabaseSQL extends SQLiteOpenHelper {
     public String findByKey(String key) {
         String val = "";
         SQLiteDatabase db = this.getReadableDatabase();
+        String sql = "SELECT `content` FROM `persion_user` WHERE `ExpNum` = ?";
+        Cursor cursor = db.rawQuery(sql, new String[]{key});
 
-        Cursor cursor = db.query(DB_TABLE_NAME,
-                new String[]{EXP_CONTENT},
-                EXP_NUMBER + " = ?",
-                new String[]{"%"+key+"%"},
-                null,
-                null,
-                null,
-                null);
-
-        while (cursor.moveToNext()) {
-            val = cursor.getString(0);
+//        Cursor cursor = db.query(DB_TABLE_NAME,
+//                new String[]{EXP_NUMBER,//1
+//                        EXP_CONTENT//2
+//                },
+//                EXP_NUMBER + " LIKE ?",
+//                new String[]{"%" + key + "%"},
+//                null,
+//                null,
+//                ORDERID + " desc",
+//                null);
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                 val = cursor.getString(0);//1
+            }
+            cursor.close();
         }
-        cursor.close();
 //        db.close();
         return val;
     }
@@ -132,16 +137,18 @@ public class DatabaseSQL extends SQLiteOpenHelper {
         List<TestBean> listData = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor cursor = db.query(DB_TABLE_NAME,
-                new String[]{EXP_NUMBER,//1
-                        EXP_CONTENT//2
-                },
-                null,
-                null,
-                null,
-                null,
-                ORDERID + " desc",
-                null);
+        String sql = "SELECT `ExpNum`,`content` FROM `persion_user` ORDER BY `_id` DESC";
+        Cursor cursor = db.rawQuery(sql, null);
+//        Cursor cursor = db.query(DB_TABLE_NAME,
+//                new String[]{EXP_NUMBER,//1
+//                        EXP_CONTENT//2
+//                },
+//                null,
+//                null,
+//                null,
+//                null,
+//                ORDERID + " desc",
+//                null);
         if (cursor != null) {
             while (cursor.moveToNext()) {
 

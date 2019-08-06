@@ -4,9 +4,9 @@ package com.ruijia.string_b.database;
  * 本地单号数据的存储
  */
 public class TestBean {
-    public TestBean(String content, String expNum) {
+    public TestBean(String expNum, String content) {
         this.content = content;
-        ExpNum = expNum;
+        this.ExpNum = expNum;
     }
 
     // 派件信息id
