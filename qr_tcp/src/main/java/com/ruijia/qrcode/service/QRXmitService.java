@@ -151,14 +151,9 @@ public class QRXmitService extends Service {
             //保存时间节点，用于统计传输总耗时
             SPUtil.putLong(Constants.START_TIME, System.currentTimeMillis());
             this.searchStr = searchStr;
-            //生成flag bitmap
-            //准备发送二维码所需的常量图
-            createFlagTask();
-
-
+            serviceStartAct();
         }
     }
-
 
     /**
      *
@@ -180,72 +175,6 @@ public class QRXmitService extends Service {
         if (bitmapFile.exists() && bitmapFile.isFile()) {
             bitmapFile.delete();
         }
-    }
-
-
-    //-----------------------文件拆分操作，耗时操作----------------------
-
-
-    /**
-     * (3) 原始List转有标记的List数据
-     * <p>
-     * 说明：String数据段头标记：snd1234567,长度10;尾标记：RJQR,长度4
-     * <p>
-     * 头标记：
-     * <p>
-     * snd：长度3：表示发送 长度3
-     * <p>
-     * 12345:长度7：表示list第几个片段
-     * <p>
-     * 尾标记：长度4，表示这段数据是否解析正确 RJQR
-     *
-     * @param orgDatas
-     */
-    /**
-     * 异步生成
-     */
-    private void createFlagTask() {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            protected Boolean doInBackground(Void... voids) {
-
-
-                //发送端标记图 规则：QrcodeContentSendOver+搜索词+七位的总片段数size
-                String sizeStr = null;
-                String sendover = null;
-                try {
-                    sizeStr = ConvertUtils.int2String(1);
-                    sendover = Constants.sendOver_Contnet + searchStr + sizeStr;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.e(TAG, "标记转换异常--ConvertUtils.int2String()" + e.toString());
-                }
-                Bitmap save_send_bitmap = CodeUtils.createByMultiFormatWriter(sendover, Constants.qrBitmapSize);
-                //保存在缓存中
-                CacheUtils.getInstance().put(Constants.flag_send_over, save_send_bitmap);
-                CacheUtils.getInstance().put(Constants.flag_send_over_length, "" + ViewUtils.getImageViewWidth(sendover.length()));
-
-                //发送结束标记（用于清空接收端数据）
-                //02
-                if (CacheUtils.getInstance().getBitmap(Constants.flag_send_complete) == null) {
-                    Bitmap save_success_bitmap = CodeUtils.createByMultiFormatWriter(Constants.sendOver_Contnet + Constants.SUCCESS, Constants.qrBitmapSize);
-                    //保存在缓存中
-                    CacheUtils.getInstance().put(Constants.flag_send_complete, save_success_bitmap);
-                    CacheUtils.getInstance().put(Constants.flag_send_complete_length, "" + ViewUtils.getImageViewWidth((Constants.sendOver_Contnet + Constants.SUCCESS).length()));
-                }
-                return true;
-            }
-
-            @Override
-            protected void onPostExecute(Boolean isSuccess) {
-                super.onPostExecute(isSuccess);
-//service与act的交互
-                //调起链路层传输数据
-                serviceStartAct();
-            }
-        }.execute();
-
     }
 
     //-----------------------《服务端-->客户端》回调（不同进程）----------------------

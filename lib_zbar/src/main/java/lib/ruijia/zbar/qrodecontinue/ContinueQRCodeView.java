@@ -344,7 +344,7 @@ public abstract class ContinueQRCodeView extends RelativeLayout implements Camer
 //        }
 
         //TODO log测试
-        Log.d(TAG, "两次 onPreviewFrame 时间间隔：" + (System.currentTimeMillis() - sLastPreviewFrameTime));
+//        Log.d(TAG, "两次 onPreviewFrame 时间间隔：" + (System.currentTimeMillis() - sLastPreviewFrameTime));
         sLastPreviewFrameTime = System.currentTimeMillis();
         if (mCamera != null) {
             //让连续识别的相机抖动聚焦起来
@@ -358,7 +358,7 @@ public abstract class ContinueQRCodeView extends RelativeLayout implements Camer
                     long startTime = System.currentTimeMillis();
                     ContinueScanResult scanResult = processData(data);
                     onPostParseData(scanResult);
-                    Log.d(TAG, "异步处理二维码帧耗时=" + (System.currentTimeMillis() - startTime));
+//                    Log.d(TAG, "异步处理二维码帧耗时=" + (System.currentTimeMillis() - startTime));
                 }
             });
         }

@@ -171,11 +171,10 @@ public class ClientAAct extends ClientABaseAct implements View.OnClickListener {
     /**
      * 发送文件
      */
+    private long startTime = 0;
+
     private void qrSend() {
-        if (TextUtils.isEmpty(selectPath)) {
-            Log.d(TAG, "请选择文件路径");
-            return;
-        }
+        startTime = System.currentTimeMillis();
         try {
             //调用服务端接口
             ibinder.QRSend(selectPath);
@@ -264,14 +263,13 @@ public class ClientAAct extends ClientABaseAct implements View.OnClickListener {
     void clientTransTime(long time, String msg) {
         super.clientTransTime(time, msg);
         //传送完成 总耗时
-        Log.d(TAG, msg);
+        Log.d(TAG, "发送端返回\n" + msg);
     }
 
     //09
     @Override
     void clientTransComplete() {
         super.clientTransComplete();
-        //完成
         Log.d(TAG, "transComplete");
     }
 }

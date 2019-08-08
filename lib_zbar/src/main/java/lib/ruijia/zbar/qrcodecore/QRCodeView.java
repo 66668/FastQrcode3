@@ -282,7 +282,7 @@ public abstract class QRCodeView extends RelativeLayout implements Camera.Previe
     @Override
     public void onPreviewFrame(final byte[] data, final Camera camera) {
         if (BGAQRCodeUtil.isDebug()) {
-            BGAQRCodeUtil.d("两次 onPreviewFrame 时间间隔：" + (System.currentTimeMillis() - sLastPreviewFrameTime));
+//            BGAQRCodeUtil.d("两次 onPreviewFrame 时间间隔：" + (System.currentTimeMillis() - sLastPreviewFrameTime));
             sLastPreviewFrameTime = System.currentTimeMillis();
         }
         //

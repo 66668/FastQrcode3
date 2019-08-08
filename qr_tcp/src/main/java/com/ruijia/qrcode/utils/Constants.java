@@ -53,7 +53,7 @@ public class Constants {
     //==========================流程控制 参数配置============================
     //================================================================================
 
-    public static final int FOCUS_TIME = 2000;//摄像头聚焦间隔（使二维码更好识别的暴力方式） ms
+    public static final int FOCUS_TIME = 550;//摄像头聚焦间隔（使二维码更好识别的暴力方式） ms
 
     public static final int TIMEOUT = 10;//连接超时 次数
 
@@ -137,6 +137,7 @@ public class Constants {
      * 很重要的标记，当识别完成后，最新时间 减去 该时间，就是二维码识别的总耗时。
      */
     public static final String START_SEND_TIME = "sendQrTime";
+
 
 
 }

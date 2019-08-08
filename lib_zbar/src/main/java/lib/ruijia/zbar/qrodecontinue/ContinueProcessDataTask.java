@@ -114,7 +114,7 @@ public class ContinueProcessDataTask extends AsyncTask<Void, Void, ContinueScanR
             return result;
         } else {
             if (ContinueBGAQRCodeUtil.isDebug()) {
-                ContinueBGAQRCodeUtil.d("两次任务执行的时间间隔：" + (System.currentTimeMillis() - sLastStartTime));
+//                ContinueBGAQRCodeUtil.d("两次任务执行的时间间隔：" + (System.currentTimeMillis() - sLastStartTime));
                 sLastStartTime = System.currentTimeMillis();
             }
             long startTime = System.currentTimeMillis();

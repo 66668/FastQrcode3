@@ -177,7 +177,6 @@
                 android:gravity="center_vertical"
                 android:text="步骤二:发送传输文件(点击的最小时间间隔15s,此处就不限制了，15s为链路连接超时判断)" />
 
-
             <Button
                 android:id="@+id/btn_QRSend"
                 android:layout_width="wrap_content"
