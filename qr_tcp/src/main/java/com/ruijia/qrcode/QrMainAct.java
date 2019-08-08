@@ -8,7 +8,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.RemoteException;
 import android.os.Vibrator;
 import android.text.TextUtils;
 import android.util.Log;
@@ -23,20 +22,14 @@ import com.ruijia.qrcode.database.DatabaseSQL;
 import com.ruijia.qrcode.listener.OnServiceAndActListener;
 import com.ruijia.qrcode.module.MyData;
 import com.ruijia.qrcode.service.QRXmitService;
-import com.ruijia.qrcode.utils.BitmapCacheUtils;
 import com.ruijia.qrcode.utils.CacheUtils;
 import com.ruijia.qrcode.utils.CodeUtils;
 import com.ruijia.qrcode.utils.Constants;
 import com.ruijia.qrcode.utils.ConvertUtils;
-import com.ruijia.qrcode.utils.IOUtils;
 import com.ruijia.qrcode.utils.SPUtil;
 import com.ruijia.qrcode.utils.ViewUtils;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
@@ -345,7 +338,6 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
         removeSendListener();
     }
 
-
     /**
      * 发送端向接收端发送连接测试，连接通了，则发送数据，连接不通，则回调 连接失败
      */
@@ -535,6 +527,7 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
                         CacheUtils.getInstance().put(Constants.flag_send_complete, save_success_bitmap);
                         CacheUtils.getInstance().put(Constants.flag_send_complete_length, "" + ViewUtils.getImageViewWidth((Constants.sendOver_Contnet + Constants.SUCCESS).length()));
                     }
+
                     return true;
                 }
 

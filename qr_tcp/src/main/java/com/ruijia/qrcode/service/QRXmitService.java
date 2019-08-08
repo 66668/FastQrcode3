@@ -2,8 +2,6 @@ package com.ruijia.qrcode.service;
 
 import android.app.Service;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteCallbackList;
@@ -15,13 +13,9 @@ import com.ruijia.qrcode.QrAIDLInterface;
 import com.ruijia.qrcode.QrProgressCallback;
 import com.ruijia.qrcode.base.QrApplication;
 import com.ruijia.qrcode.listener.OnServiceAndActListener;
-import com.ruijia.qrcode.utils.CacheUtils;
 import com.ruijia.qrcode.utils.CheckUtils;
-import com.ruijia.qrcode.utils.CodeUtils;
 import com.ruijia.qrcode.utils.Constants;
-import com.ruijia.qrcode.utils.ConvertUtils;
 import com.ruijia.qrcode.utils.SPUtil;
-import com.ruijia.qrcode.utils.ViewUtils;
 
 import java.io.File;
 import java.util.ArrayList;
