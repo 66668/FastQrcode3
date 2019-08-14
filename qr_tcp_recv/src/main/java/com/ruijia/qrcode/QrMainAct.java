@@ -474,7 +474,7 @@ public class QrMainAct extends QrBaseAct implements ContinueQRCodeView.Delegate 
      * 发送端接收结束标记
      */
     private void sendComplete(String result) {
-        Log.d(TAG, "接受查询结果的总耗时=" + (System.currentTimeMillis() - tansTime));
+        Log.d(TAG, "显示二维码到收到结果总耗时=" + (System.currentTimeMillis() - tansTime));
         //统计 回调
         long qrstartTime = SPUtil.getLong(Constants.START_SEND_TIME, System.currentTimeMillis());//二维码开始时间
         long qrTime = System.currentTimeMillis() - qrstartTime;//总耗时

@@ -372,39 +372,7 @@ public class QRXmitService extends Service {
         //接口回调
         if (listener != null) {
             // 字符串查询，不用 selectPath
-
-            if (timer != null) {
-                timer.cancel();
-                timer = null;
-            }
-            count = 0;
-            timer = new Timer();
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    //终止倒计时
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (count < 10) {//
-                                Log.d("SJY", "剩余发送测试次数=" + (10 - count) + "次");
-                                if (count % 2 == 0) {
-                                    listener.onQrsend("111111", null, 1);
-                                } else {
-                                    listener.onQrsend("111112", null, 1);
-                                }
-                                count++;
-                            } else {
-                                count = 0;
-                                if (timer != null) {
-                                    timer.cancel();
-                                    timer = null;
-                                }
-                            }
-                        }
-                    });
-                }
-            }, 0, 6000);
+            listener.onQrsend(searchStr, null, 1);
 
         } else {
             isTrans(false, "链路层未启动，回调无法使用listener=null");

@@ -1,4 +1,5 @@
 include ':qr_tcp'
+include ':qr_tcp_recv'
 include ':lib_zbar'
 include ':lib_filepicker'
 include ':qr_client_stringa'
